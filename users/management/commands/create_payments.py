@@ -1,25 +1,33 @@
-from django.core.management.base import BaseCommand
-from users.models import User, Payment
-from materials.models import Course, Lesson
-from datetime import datetime, timedelta
 import random
+from datetime import datetime, timedelta
+
+from django.core.management.base import BaseCommand
+
+from materials.models import Course, Lesson
+from users.models import Payment, User
 
 
 class Command(BaseCommand):
-    help = 'Создание тестовых платежей'
+    help = "Создание тестовых платежей"
 
     def handle(self, *args, **options):
         # Получаем или создаем пользователей
         users = User.objects.all()
         if not users.exists():
-            self.stdout.write(self.style.WARNING('Нет пользователей. Сначала создайте пользователей.'))
+            self.stdout.write(
+                self.style.WARNING("Нет пользователей. Сначала создайте пользователей.")
+            )
             return
 
         courses = Course.objects.all()
         lessons = Lesson.objects.all()
 
         if not courses.exists() and not lessons.exists():
-            self.stdout.write(self.style.WARNING('Нет курсов и уроков. Сначала создайте курсы и уроки.'))
+            self.stdout.write(
+                self.style.WARNING(
+                    "Нет курсов и уроков. Сначала создайте курсы и уроки."
+                )
+            )
             return
 
         # Очищаем существующие платежи
@@ -50,9 +58,9 @@ class Command(BaseCommand):
                     paid_course=paid_course,
                     paid_lesson=paid_lesson,
                     amount=amount,
-                    payment_method=random.choice(payment_methods)
+                    payment_method=random.choice(payment_methods),
                 )
 
-                self.stdout.write(self.style.SUCCESS(f'Создан платеж: {payment}'))
+                self.stdout.write(self.style.SUCCESS(f"Создан платеж: {payment}"))
 
-        self.stdout.write(self.style.SUCCESS('Тестовые платежи успешно созданы!'))
+        self.stdout.write(self.style.SUCCESS("Тестовые платежи успешно созданы!"))
