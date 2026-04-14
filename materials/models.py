@@ -9,8 +9,14 @@ class Course(models.Model):
         upload_to="courses/previews/", verbose_name="Превью", blank=True, null=True
     )
     description = models.TextField(verbose_name="Описание", blank=True)
-    owner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE,
-                              related_name='courses', verbose_name='Владелец', null=True, blank=True)
+    owner = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="courses",
+        verbose_name="Владелец",
+        null=True,
+        blank=True,
+    )
 
     class Meta:
         verbose_name = "Курс"
@@ -30,12 +36,19 @@ class Lesson(models.Model):
     course = models.ForeignKey(
         Course, on_delete=models.CASCADE, related_name="lessons", verbose_name="Курс"
     )
-    owner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE,
-                              related_name='lessons', verbose_name='Владелец', null=True, blank=True)
+    owner = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="lessons",
+        verbose_name="Владелец",
+        null=True,
+        blank=True,
+    )
 
     class Meta:
         verbose_name = "Урок"
         verbose_name_plural = "Уроки"
+        ordering = ["id"]
 
     def __str__(self):
         return self.title

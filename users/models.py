@@ -1,7 +1,23 @@
-from django.contrib.auth.models import AbstractUser
+from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django.db import models
 
 from materials.models import Course, Lesson
+
+
+class UserManager(BaseUserManager):
+    def create_user(self, email, password=None, **extra_fields):
+        if not email:
+            raise ValueError("Email is required")
+        email = self.normalize_email(email)
+        user = self.model(email=email, **extra_fields)
+        user.set_password(password)
+        user.save(using=self._db)
+        return user
+
+    def create_superuser(self, email, password=None, **extra_fields):
+        extra_fields.setdefault("is_staff", True)
+        extra_fields.setdefault("is_superuser", True)
+        return self.create_user(email, password, **extra_fields)
 
 
 class User(AbstractUser):
@@ -20,8 +36,9 @@ class User(AbstractUser):
     avatar = models.ImageField(
         upload_to="users/avatars/", verbose_name="Аватар", blank=True, null=True
     )
+    objects = UserManager()
 
-    USERNAME_FIELD = "email"
+    USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = []
 
     class Meta:
@@ -69,3 +86,31 @@ class Payment(models.Model):
 
     def __str__(self):
         return f"{self.user.email} - {self.amount} руб. ({self.payment_date})"
+
+
+class Subscription(models.Model):
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="subscriptions",
+        verbose_name="Пользователь",
+    )
+    course = models.ForeignKey(
+        Course,
+        on_delete=models.CASCADE,
+        related_name="subscriptions",
+        verbose_name="Курс",
+    )
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Дата подписки")
+
+    class Meta:
+        verbose_name = "Подписка"
+        verbose_name_plural = "Подписки"
+        ordering = ["-created_at"]
+        unique_together = [
+            "user",
+            "course",
+        ]  # Чтобы пользователь не мог подписаться на один курс дважды
+
+    def __str__(self):
+        return f"{self.user.email} подписан на {self.course.title}"

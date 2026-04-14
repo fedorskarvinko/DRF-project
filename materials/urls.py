@@ -1,8 +1,11 @@
 from django.urls import include, path
 from rest_framework.routers import DefaultRouter
 
-from materials.views import (CourseViewSet, LessonListCreateView,
-                             LessonRetrieveUpdateDestroyView)
+from materials.views import (
+    CourseViewSet,
+    LessonListCreateView,
+    LessonRetrieveUpdateDestroyView,
+)
 
 # Роутер для ViewSet (курсы)
 router = DefaultRouter()
