@@ -326,4 +326,3 @@ class SubscriptionTestCase(APITestCase):
         print(f"Invalid course data: {response.data}")
 
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
-

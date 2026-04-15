@@ -38,7 +38,7 @@ class User(AbstractUser):
     )
     objects = UserManager()
 
-    USERNAME_FIELD = 'email'
+    USERNAME_FIELD = "email"
     REQUIRED_FIELDS = []
 
     class Meta:
@@ -50,6 +50,7 @@ class Payment(models.Model):
     class PaymentMethod(models.TextChoices):
         CASH = "cash", "Наличные"
         TRANSFER = "transfer", "Перевод на счет"
+        STRIPE = "stripe", "Stripe"
 
     user = models.ForeignKey(
         User,
@@ -77,6 +78,23 @@ class Payment(models.Model):
     )
     payment_method = models.CharField(
         max_length=10, choices=PaymentMethod.choices, verbose_name="Способ оплаты"
+    )
+
+    # Поля для Stripe
+    stripe_product_id = models.CharField(
+        max_length=255, blank=True, null=True, verbose_name="ID продукта в Stripe"
+    )
+    stripe_price_id = models.CharField(
+        max_length=255, blank=True, null=True, verbose_name="ID цены в Stripe"
+    )
+    stripe_session_id = models.CharField(
+        max_length=255, blank=True, null=True, verbose_name="ID сессии оплаты"
+    )
+    payment_status = models.CharField(
+        max_length=50, default="pending", verbose_name="Статус оплаты"
+    )
+    payment_url = models.URLField(
+        max_length=2000, blank=True, null=True, verbose_name="Ссылка на оплату"
     )
 
     class Meta:

@@ -36,13 +36,15 @@ class CourseViewSet(viewsets.ModelViewSet):
         if user.is_authenticated:
             if IsModerator().has_permission(self.request, self):
                 return Course.objects.all()
-            return Course.objects.all()  # Все курсы видны всем, но права на редактирование ограничены
+            return (
+                Course.objects.all()
+            )  # Все курсы видны всем, но права на редактирование ограничены
         return Course.objects.none()
 
     def get_serializer_context(self):
-            context = super().get_serializer_context()
-            context['request'] = self.request
-            return context
+        context = super().get_serializer_context()
+        context["request"] = self.request
+        return context
 
 
 class LessonListCreateView(generics.ListCreateAPIView):
