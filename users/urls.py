@@ -2,7 +2,7 @@ from django.urls import include, path
 from rest_framework.routers import DefaultRouter
 
 from .apps import UsersConfig
-from .views import PaymentListView, UserViewSet, SubscriptionViewSet
+from .views import PaymentListView, UserViewSet, SubscriptionViewSet, PaymentCreateView, PaymentStatusView
 
 app_name = UsersConfig.name
 
@@ -13,4 +13,6 @@ router.register(r"subscriptions", SubscriptionViewSet, basename="subscription")
 urlpatterns = [
     path("", include(router.urls)),
     path("payments/", PaymentListView.as_view(), name="payment-list"),
+    path("payments/create/", PaymentCreateView.as_view(), name='payment-create'),
+    path("payments/<int:pk>/status/", PaymentStatusView.as_view(), name='payment-status'),
 ]
