@@ -110,11 +110,11 @@ services:
       - lms_network
 
 networks:
-    lms_network:
-      driver: bridge
+  lms_network:
+    driver: bridge
 
 volumes:
-    postgres_data:
-    redis_data:
-    static_volume:
-    media_volume:
+  postgres_data:
+  redis_data:
+  static_volume:
+  media_volume:
