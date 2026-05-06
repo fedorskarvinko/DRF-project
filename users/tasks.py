@@ -15,8 +15,8 @@ def send_course_update_email(course_id, user_email, user_name, course_title):
     Отправка письма пользователю об обновлении курса
     """
     try:
-        subject = f'Обновление курса: {course_title}'
-        message = f'''
+        subject = f"Обновление курса: {course_title}"
+        message = f"""
         Здравствуйте, {user_name}!
 
         Курс "{course_title}" был обновлен. 
@@ -26,7 +26,7 @@ def send_course_update_email(course_id, user_email, user_name, course_title):
 
         С уважением,
         Команда LMS System
-        '''
+        """
 
         send_mail(
             subject=subject,
@@ -36,11 +36,11 @@ def send_course_update_email(course_id, user_email, user_name, course_title):
             fail_silently=False,
         )
 
-        logger.info(f'Email sent to {user_email} about course {course_title}')
+        logger.info(f"Email sent to {user_email} about course {course_title}")
         return True
 
     except Exception as e:
-        logger.error(f'Failed to send email to {user_email}: {e}')
+        logger.error(f"Failed to send email to {user_email}: {e}")
         return False
 
 
@@ -51,11 +51,13 @@ def notify_course_subscribers(course_id, course_title, last_update_time):
     """
     try:
         # Получаем всех подписчиков курса
-        subscriptions = Subscription.objects.filter(course_id=course_id).select_related('user')
+        subscriptions = Subscription.objects.filter(course_id=course_id).select_related(
+            "user"
+        )
 
         if not subscriptions.exists():
-            logger.info(f'No subscribers for course {course_title}')
-            return {'status': 'no_subscribers', 'count': 0}
+            logger.info(f"No subscribers for course {course_title}")
+            return {"status": "no_subscribers", "count": 0}
 
         sent_count = 0
         for subscription in subscriptions:
@@ -65,16 +67,18 @@ def notify_course_subscribers(course_id, course_title, last_update_time):
                 course_id=course_id,
                 user_email=user.email,
                 user_name=user.first_name or user.email,
-                course_title=course_title
+                course_title=course_title,
             )
             sent_count += 1
 
-        logger.info(f'Notifications sent to {sent_count} subscribers for course {course_title}')
-        return {'status': 'success', 'count': sent_count}
+        logger.info(
+            f"Notifications sent to {sent_count} subscribers for course {course_title}"
+        )
+        return {"status": "success", "count": sent_count}
 
     except Exception as e:
-        logger.error(f'Failed to notify subscribers for course {course_id}: {e}')
-        return {'status': 'error', 'error': str(e)}
+        logger.error(f"Failed to notify subscribers for course {course_id}: {e}")
+        return {"status": "error", "error": str(e)}
 
 
 @shared_task
@@ -87,8 +91,7 @@ def deactivate_inactive_users():
 
         # Находим активных пользователей, которые не заходили более месяца
         inactive_users = User.objects.filter(
-            is_active=True,
-            last_login__lt=one_month_ago
+            is_active=True, last_login__lt=one_month_ago
         )
 
         count = inactive_users.count()
@@ -96,20 +99,22 @@ def deactivate_inactive_users():
         if count > 0:
             # Блокируем пользователей
             updated_count = inactive_users.update(is_active=False)
-            logger.info(f'Deactivated {updated_count} inactive users')
+            logger.info(f"Deactivated {updated_count} inactive users")
 
             # Отправляем уведомления заблокированным пользователям
             for user in inactive_users:
-                send_account_blocked_email.delay(user.email, user.first_name or user.email)
+                send_account_blocked_email.delay(
+                    user.email, user.first_name or user.email
+                )
 
-            return {'status': 'success', 'deactivated_count': updated_count}
+            return {"status": "success", "deactivated_count": updated_count}
         else:
-            logger.info('No inactive users found')
-            return {'status': 'success', 'deactivated_count': 0}
+            logger.info("No inactive users found")
+            return {"status": "success", "deactivated_count": 0}
 
     except Exception as e:
-        logger.error(f'Failed to deactivate inactive users: {e}')
-        return {'status': 'error', 'error': str(e)}
+        logger.error(f"Failed to deactivate inactive users: {e}")
+        return {"status": "error", "error": str(e)}
 
 
 @shared_task
@@ -118,8 +123,8 @@ def send_account_blocked_email(user_email, user_name):
     Отправка письма о блокировке аккаунта
     """
     try:
-        subject = 'Ваш аккаунт был заблокирован'
-        message = f'''
+        subject = "Ваш аккаунт был заблокирован"
+        message = f"""
         Здравствуйте, {user_name}!
 
         Ваш аккаунт был автоматически заблокирован из-за отсутствия активности более месяца.
@@ -128,7 +133,7 @@ def send_account_blocked_email(user_email, user_name):
 
         С уважением,
         Команда LMS System
-        '''
+        """
 
         send_mail(
             subject=subject,
@@ -138,9 +143,9 @@ def send_account_blocked_email(user_email, user_name):
             fail_silently=False,
         )
 
-        logger.info(f'Block notification sent to {user_email}')
+        logger.info(f"Block notification sent to {user_email}")
         return True
 
     except Exception as e:
-        logger.error(f'Failed to send block notification to {user_email}: {e}')
+        logger.error(f"Failed to send block notification to {user_email}: {e}")
         return False

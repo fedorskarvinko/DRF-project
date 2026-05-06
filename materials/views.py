@@ -53,7 +53,7 @@ class CourseViewSet(viewsets.ModelViewSet):
         updated_course = serializer.save()
 
         # Получаем время последнего обновления (можно хранить в модели)
-        last_update = getattr(instance, 'last_update_time', None)
+        last_update = getattr(instance, "last_update_time", None)
         now = timezone.now()
 
         # Проверяем, прошло ли более 4 часов с последнего уведомления
@@ -62,18 +62,20 @@ class CourseViewSet(viewsets.ModelViewSet):
             time_diff = now - last_update
             if time_diff < timedelta(hours=4):
                 should_notify = False
-                logger.info(f'Course {updated_course.id} updated within 4 hours, skipping notification')
+                logger.info(
+                    f"Course {updated_course.id} updated within 4 hours, skipping notification"
+                )
 
         # Отправляем уведомления, если курс обновлен и прошло более 4 часов
         if should_notify:
             notify_course_subscribers.delay(
                 course_id=updated_course.id,
                 course_title=updated_course.title,
-                last_update_time=now.isoformat()
+                last_update_time=now.isoformat(),
             )
             # Обновляем время последнего уведомления
             updated_course.last_notification_time = now
-            updated_course.save(update_fields=['last_notification_time'])
+            updated_course.save(update_fields=["last_notification_time"])
 
     def get_serializer_context(self):
         context = super().get_serializer_context()
