@@ -17,7 +17,9 @@ class Course(models.Model):
         null=True,
         blank=True,
     )
-    last_notification_time = models.DateTimeField(null=True, blank=True, verbose_name='Время последнего уведомления')
+    last_notification_time = models.DateTimeField(
+        null=True, blank=True, verbose_name="Время последнего уведомления"
+    )
 
     class Meta:
         verbose_name = "Курс"

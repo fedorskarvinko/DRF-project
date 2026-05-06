@@ -1,0 +1,110 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, feature/homework_35.2 ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_DB: lms_test
+          POSTGRES_USER: test_user
+          POSTGRES_PASSWORD: test_pass
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.14'
+
+    - name: Install Poetry
+      run: |
+        curl -sSL https://install.python-poetry.org | python3 -
+        echo "$HOME/.local/bin" >> $GITHUB_PATH
+
+    - name: Install dependencies
+      run: |
+        poetry config virtualenvs.create false
+        poetry install --no-interaction --no-ansi --no-root
+
+    - name: Create .env file for tests
+      run: |
+        cat > .env << EOF
+        SECRET_KEY=test-secret-key-for-actions-12345
+        DEBUG=True
+        ALLOWED_HOSTS=localhost
+        DATABASE_ENGINE=django.db.backends.postgresql
+        DATABASE_NAME=lms_test
+        DATABASE_USER=test_user
+        DATABASE_PASSWORD=test_pass
+        DATABASE_HOST=localhost
+        DATABASE_PORT=5432
+        REDIS_HOST=localhost
+        REDIS_PORT=6379
+        EOF
+
+    - name: Run migrations
+      run: python manage.py migrate
+
+    - name: Run tests
+      run: python manage.py test materials.tests --verbosity=2
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: test
+    if: github.event_name == 'push' && github.ref == 'refs/heads/feature/homework_35.2'
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Setup SSH
+      run: |
+        mkdir -p ~/.ssh
+        echo "${{ secrets.SSH_KEY }}" > ~/.ssh/id_rsa
+        chmod 600 ~/.ssh/id_rsa
+        ssh-keyscan -H ${{ secrets.SERVER_IP }} >> ~/.ssh/known_hosts
+
+    - name: Deploy to server
+      run: |
+        ssh ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }} << 'EOF'
+          cd ${{ secrets.DEPLOY_DIR }}
+        
+          git fetch origin
+          git checkout feature/homework_35.2
+          git pull origin feature/homework_35.2
+        
+        
+          docker-compose down
+          docker-compose up -d --build
+          
+          # Очищаем старые образы
+          docker system prune -f
+          
+          echo "Deployment completed!"
+        EOF

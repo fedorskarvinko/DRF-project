@@ -24,4 +24,4 @@
 1. **Клонируйте репозиторий**
    ```bash
    git clone <your-repo-url>
-   cd LMS_System
+   cd DRF_Project
