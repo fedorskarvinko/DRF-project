@@ -1,4 +1,4 @@
-FROM python:3.13-slim
+FROM python:3.14-slim
 
 WORKDIR /app
 
@@ -28,12 +28,11 @@ COPY . .
 RUN mkdir -p /app/static /app/media /app/logs
 
 # Устанавливаем SECRET_KEY для сборки статики
-ENV SECRET_KEY=dummy-key-for-build-only
 ENV DEBUG=False
 ENV ALLOWED_HOSTS=*
 
 # Cбор статики
-RUN python manage.py collectstatic --noinput
+RUN SECRET_KEY=temporary-build-key python manage.py collectstatic --noinput
 
 # Настройка переменных окружения
 ENV PYTHONUNBUFFERED=1
